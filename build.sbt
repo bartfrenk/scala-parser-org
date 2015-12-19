@@ -1,6 +1,5 @@
+name := "parser-org"
 
-name := "org-parser"
+scalaVersion := "2.11.2"
 
-version := "0.1"
-
-scalaVersion := 
+mainClass in Compile := Some("run.Main")
