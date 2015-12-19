@@ -1,0 +1,18 @@
+/local.properties
+*.class
+
+# gradle
+/build/
+/.gradle/
+/gradle/
+/gradlew.bat
+/gradlew
+/build.gradle
+
+# sbt
+target/
+/.history
+
+# ensime
+/.ensime_cache/
+
