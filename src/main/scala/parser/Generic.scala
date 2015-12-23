@@ -5,46 +5,46 @@ import scalaz.MonadPlus
 import scala.language.implicitConversions
 import scala.language.higherKinds
 
-package object generic {
+object Parser {
 
   type Error = String
   type Result[+A] = Either[Error, A]
-  case class State(text: String, index: Int)
-  type Parser[+A] = State => (State, Result[A])
 
-  object ParserMonad extends MonadPlus[Parser] { self =>
+  def succeed[S, A](a : => A): Parser[S, A] = Parser(s => (s, Right(a)))
+  def fail[S, A](err: Error): Parser[S, A] = Parser(s => (s, Left(err)))
 
-    implicit def operators[A](p: Parser[A]) = ParserOps[A](p)
+  implicit def parserMonad[S] = new MonadPlus[({type f[x] = Parser[S, x]})#f] { self =>
 
-    def succeed[A](a: => A): Parser[A] = point(a)
-    def point[A](a: => A): Parser[A] = s => (s, Right(a))
+    def point[A](a: => A): Parser[S, A] = Parser.succeed(a)
+    def bind[A, B](p: Parser[S, A])(f: A => Parser[S, B]): Parser[S, B] = p flatMap f
+    def empty[A] = Parser.fail("")
+    def plus[A](p: Parser[S, A], q: => Parser[S, A]): Parser[S, A] = p or q
 
-    def bind[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B] =
-      s => p(s) match {
-        case (t, Left(err)) => (t, Left(err))
-        case (t, Right(a)) => f(a)(t)
-      }
-
-    def fail[A](msg: String): Parser[A] = s => (s, Left(msg))
-    def empty[A] = fail("")
-
-    def plus[A](p: Parser[A], q: => Parser[A]): Parser[A] =
-      r => p(r) match {
-        case (s, Left(errp)) => q(r) match {
-          case (t, Left(errq)) => (r, Left(errp))
-          case (t, Right(b)) => (t, Right(b))
-        }
-        case (s, Right(a)) => (s, Right(a))
-      }
-
-    def count[A](p: Parser[A]): Parser[Int] = many(p) map (_.length)
-
-    case class ParserOps[A](p: Parser[A]) {
-      def >>=[B](f: A => Parser[B]): Parser[B] = self.bind(p)(f)
-      def flatMap[B](f: A => Parser[B]): Parser[B] = self.bind(p)(f)
-      def ||(q: => Parser[A]): Parser[A] = self.plus(p, q)
-      def map[B](f: A => B): Parser[B] = self.map(p)(f)
-    }
+    def count[A](p: Parser[S, A]): Parser[S, Int] = many(p) map (_.length)
   }
+
+}
+
+case class Parser[S, +A](run: S => (S, Parser.Result[A])) {
+
+  def flatMap[B](f: A => Parser[S, B]): Parser[S, B] =
+    Parser(s => run(s) match {
+      case (t, Left(err)) => (t, Left(err))
+      case (t, Right(a)) => f(a).run(t)
+    })
+
+  def map[B](f: A => B): Parser[S, B] = {
+    val g: A => Parser[S, B] = f andThen (b => Parser(s => (s, Right(b))))
+    flatMap(g)
+  }
+
+  def or[B >: A](p: => Parser[S, B]): Parser[S, B] =
+    Parser(r => run(r) match {
+      case (s, Left(errp)) => p.run(r) match {
+        case (t, Left(errq)) => (r, Left(errp))
+        case (t, Right(b)) => (t, Right(b))
+      }
+      case (s, Right(a)) => (s, Right(a))
+    })
 
 }
