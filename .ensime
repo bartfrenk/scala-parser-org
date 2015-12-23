@@ -5,18 +5,18 @@
  :java-home "/usr/lib/jvm/java-1.7.0-openjdk-amd64"
  :java-flags ("-XX:MaxPermSize=256m" "-XX:ReservedCodeCacheSize=128m" "-Xms1024m" "-Xmx1024m" "-Xss2m")
  :reference-source-roots ("/usr/lib/jvm/java-1.7.0-openjdk-amd64/src.zip")
- :scala-version "2.11.2"
+ :scala-version "2.11.7"
  :compiler-args ("-Xfuture" "-Xlint" "-Yinline-warnings" "-Yno-adapted-args" "-Ywarn-dead-code" "-Ywarn-numeric-widen" "-Ywarn-unused-import" "-deprecation" "-feature")
  :formatting-prefs nil
  :subprojects ((
    :name "scala-parser-org"
-   :source-roots nil
+   :source-roots ("/home/bart/remote/Dropbox/documents/projects/scala-parser-org/src/main/scala")
    :targets ("/home/bart/remote/Dropbox/documents/projects/scala-parser-org/target/scala-2.11/classes")
    :test-targets ("/home/bart/remote/Dropbox/documents/projects/scala-parser-org/target/scala-2.11/test-classes")
    :depends-on-modules nil
-   :compile-deps ("/home/bart/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.2.jar")
+   :compile-deps ("/home/bart/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.7.jar" "/home/bart/.ivy2/cache/org.scalaz/scalaz-core_2.11/bundles/scalaz-core_2.11-7.2.0.jar")
    :runtime-deps nil
    :test-deps nil
-   :doc-jars ("/home/bart/.ivy2/cache/org.scala-lang/scala-library/docs/scala-library-2.11.2-javadoc.jar" "/home/bart/remote/Dropbox/documents/projects/scala-parser-org/target/scala-2.11/org-parser_2.11-0.1-javadoc.jar")
-   :reference-source-roots ("/home/bart/.ivy2/cache/org.scala-lang/scala-library/srcs/scala-library-2.11.2-sources.jar")))
+   :doc-jars ("/home/bart/.ivy2/cache/org.scala-lang/scala-library/docs/scala-library-2.11.7-javadoc.jar" "/home/bart/.ivy2/cache/org.scalaz/scalaz-core_2.11/docs/scalaz-core_2.11-7.2.0-javadoc.jar" "/home/bart/remote/Dropbox/documents/projects/scala-parser-org/target/scala-2.11/parser-org_2.11-0.1-SNAPSHOT-javadoc.jar")
+   :reference-source-roots ("/home/bart/.ivy2/cache/org.scala-lang/scala-library/srcs/scala-library-2.11.7-sources.jar" "/home/bart/.ivy2/cache/org.scalaz/scalaz-core_2.11/srcs/scalaz-core_2.11-7.2.0-sources.jar")))
 )
