@@ -2,27 +2,34 @@ package parser
 
 import scala.collection.immutable.List
 import scalaz.MonadPlus
-import scala.language.implicitConversions
-import scala.language.higherKinds
 
 object Parser {
-
   type Error = String
   type Result[+A] = Either[Error, A]
 
-  def succeed[S, A](a : => A): Parser[S, A] = Parser(s => (s, Right(a)))
-  def fail[S, A](err: Error): Parser[S, A] = Parser(s => (s, Left(err)))
+  def parse[S, A](p: Parser[S, A])(s: S) = p.run(s)
 
-  implicit def parserMonad[S] = new MonadPlus[({type f[x] = Parser[S, x]})#f] { self =>
+  trait Combinators[S] extends MonadPlus[({type f[x] = Parser[S, x]})#f] {
 
-    def point[A](a: => A): Parser[S, A] = Parser.succeed(a)
+    def succeed[A](a : => A): Parser[S, A] = Parser(s => (s, Right(a)))
+    def fail[A](err: Error): Parser[S, A] = Parser(s => (s, Left(err)))
+
+    def point[A](a: => A): Parser[S, A] = succeed(a)
     def bind[A, B](p: Parser[S, A])(f: A => Parser[S, B]): Parser[S, B] = p flatMap f
-    def empty[A] = Parser.fail("")
+    def empty[A] = fail("")
     def plus[A](p: Parser[S, A], q: => Parser[S, A]): Parser[S, A] = p or q
 
-    def count[A](p: Parser[S, A]): Parser[S, Int] = many(p) map (_.length)
-  }
+    def count[A](p: => Parser[S, A]): Parser[S, Int] = many(p) map (_.length)
+    def map2[A, B, C](p: Parser[S, A], q: => Parser[S, B])(f: (A, B) => C): Parser[S, C] =
+      for { a <- p; b <- q } yield f(a, b)
+    // this is not the same as the ApplicativePlus definition in scalaz
+    override def many[A](p: Parser[S, A]): Parser[S, List[A]] =
+      map2(p, many(p))(_ :: _) or succeed(List())
 
+    def skip[A, B](p: => Parser[S, A]): B => Parser[S, B] =
+      b => many(p) >>= (_ => succeed(b))
+
+  }
 }
 
 case class Parser[S, +A](run: S => (S, Parser.Result[A])) {
@@ -47,4 +54,5 @@ case class Parser[S, +A](run: S => (S, Parser.Result[A])) {
       case (s, Right(a)) => (s, Right(a))
     })
 
+  def >>=[B](f: A => Parser[S, B]) = flatMap(f)
 }

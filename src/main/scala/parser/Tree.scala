@@ -1,5 +1,3 @@
-package parser.org
+package parser
 
-class Tree[+A](value: A, children: Tree[A]) {
-
-}
+case class Tree[+A](value: A, children: List[Tree[A]])
